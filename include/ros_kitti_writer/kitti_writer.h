@@ -10,12 +10,20 @@
 #ifndef CATKIN_WS_TEST_SRC_ROS_KITTI_WRITER_INCLUDE_ROS_KITTI_WRITER_KITTI_WRITER_H_
 #define CATKIN_WS_TEST_SRC_ROS_KITTI_WRITER_INCLUDE_ROS_KITTI_WRITER_KITTI_WRITER_H_
 
+// C++
+#include <iostream>
+#include <string>
+#include <vector>
+// ROS
 #include <ros/ros.h>
 class KittiWriter {
 public:
   // Default constructor
   KittiWriter(ros::NodeHandle nh, ros::NodeHandle private_nh);
   virtual ~KittiWriter();
+
+private:
+  void createFormatFolder();
 };
 
 #endif /* CATKIN_WS_TEST_SRC_ROS_KITTI_WRITER_INCLUDE_ROS_KITTI_WRITER_KITTI_WRITER_H_ */
