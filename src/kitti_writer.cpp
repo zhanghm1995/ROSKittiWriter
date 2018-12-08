@@ -61,7 +61,17 @@ imageCloudSync_(nh, "/stereo/left/image_raw", "/lidar_cloud_calibrated"),
 processthread_(NULL),
 processthreadfinished_(false)
 {
+  // Define lidar parameters
+  if(!private_nh.getParam("root_directory", root_directory_)) {
+    ROS_ERROR("Have't set $(root_directory) parameter!");
+    ros::shutdown();
+  }
+
+  // Create formatted folders
   createFormatFolders();
+
+  // Print parameters
+  ROS_INFO_STREAM("root_directory " << root_directory_);
   processthread_ = new boost::thread(boost::bind(&KittiWriter::process,this));
 }
 
@@ -93,36 +103,34 @@ void KittiWriter::process()
 
 void KittiWriter::createFormatFolders()
 {
-  string root_directory = "/home/zhanghm/Test/catkin_ws_test/";
-
   // Create image 02 and 03 folder
-  image_02_dir_path_ = boost::filesystem::path(root_directory)
+  image_02_dir_path_ = boost::filesystem::path(root_directory_)
                        / folder_image_02
                        / "data";
   if(!boost::filesystem::exists(image_02_dir_path_)) {
     boost::filesystem::create_directories(image_02_dir_path_);
   }
-  timestamp_image02_path_ = boost::filesystem::path(root_directory)
+  timestamp_image02_path_ = boost::filesystem::path(root_directory_)
                             / folder_image_02
                             / "timestamps.txt";
 
-  image_03_dir_path_ = boost::filesystem::path(root_directory)
+  image_03_dir_path_ = boost::filesystem::path(root_directory_)
                        / folder_image_03
                        / "data";
   if(!boost::filesystem::exists(image_03_dir_path_)) {
     boost::filesystem::create_directories(image_03_dir_path_);
   }
-  timestamp_image03_path_ = boost::filesystem::path(root_directory)
+  timestamp_image03_path_ = boost::filesystem::path(root_directory_)
                             / folder_image_03
                             / "timestamps.txt";
   // Create velodyne_points folder
-  velo_dir_path_ = boost::filesystem::path(root_directory)
+  velo_dir_path_ = boost::filesystem::path(root_directory_)
                   / folder_velodyne_points
                   / "data";
   if(!boost::filesystem::exists(velo_dir_path_)) {
     boost::filesystem::create_directories(velo_dir_path_);
   }
-  timestamp_velo_path_ = boost::filesystem::path(root_directory)
+  timestamp_velo_path_ = boost::filesystem::path(root_directory_)
                         / folder_velodyne_points
                         / "timestamps.txt";
 }

@@ -54,6 +54,7 @@ private:
   bool processthreadfinished_;
 
   // Class members
+  std::string root_directory_;
   boost::filesystem::path image_02_dir_path_, image_03_dir_path_;
   boost::filesystem::path timestamp_image02_path_, timestamp_image03_path_;
   boost::filesystem::path velo_dir_path_;
