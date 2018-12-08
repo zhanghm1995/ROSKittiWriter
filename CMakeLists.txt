@@ -41,6 +41,6 @@ include_directories(
 ###########
 ## Build ##
 ###########
-add_executable(ros_kitti_writer_node src/ros_kitti_writer_node.cpp src/kitti_writer.cpp)
+add_executable(ros_kitti_writer_node src/ros_kitti_writer_node.cpp src/kitti_writer.cpp src/messages_sync.cpp)
 target_link_libraries(ros_kitti_writer_node ${catkin_LIBRARIES} ${OpenCV_LIBS} ${Boost_LIBRARIES} ${PCL_LIBRARIES})
 
