@@ -16,14 +16,35 @@
 #include <vector>
 // ROS
 #include <ros/ros.h>
+#include <sensor_msgs/Image.h>
+#include <sensor_msgs/PointCloud2.h>
+// Boost
+#include <boost/filesystem/path.hpp>
+
 class KittiWriter {
 public:
   // Default constructor
   KittiWriter(ros::NodeHandle nh, ros::NodeHandle private_nh);
   virtual ~KittiWriter();
 
+  void process();
 private:
-  void createFormatFolder();
+  void createFormatFolders();
+
+
+  //! Save image02 and corresponding timestamp
+  void saveImage02(const sensor_msgs::Image::ConstPtr & image);
+
+  // Subscriber
+  ros::Subscriber image_sub_;
+
+  // Class members
+  boost::filesystem::path image_02_dir_path_, image_03_dir_path_;
+  boost::filesystem::path timestamp_image02_path_, timestamp_image03_path_;
+  boost::filesystem::path velo_dir_path_;
+
+  // Whole counter
+  unsigned long int count_;
 };
 
 #endif /* CATKIN_WS_TEST_SRC_ROS_KITTI_WRITER_INCLUDE_ROS_KITTI_WRITER_KITTI_WRITER_H_ */

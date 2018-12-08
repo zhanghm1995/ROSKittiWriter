@@ -1,0 +1,38 @@
+<launch>
+
+<!-- The namespace where images are published -->
+
+    <arg    name="directory"
+     default="/home/zhanghm/Datasets/KITTI/raw_data/2011_09_26/2011_09_26_drive_0005_sync/"
+	/>
+
+    <node   pkg="ros_kitti_writer" type="ros_kitti_writer_node" name="ros_kitti_writer_node" 
+            required="true"   output="screen"
+           args= "-d $(arg directory) -f 3 -a 1"
+          
+        <param name="root_directory"		value="$(arg directory"/>
+    </node>
+    
+
+<!-- tf   -->
+   <node pkg="tf" type="static_transform_publisher" name="visual_odometry_camera_frame_to_visual_odometry_car_frame"
+          args="0 0 0 -1.570796 0 -1.570796 base_link kitti_player 50" />
+
+
+ <!-- Launch RViz-->
+    <!--<arg  name="rviz" default="$(find kitti_player)/cfg/rviz_kitti_player.rviz" />
+    <node pkg="rviz" type="rviz" name="rviz"
+            args="-d $(arg rviz)"
+            output="screen"
+    /> -->
+
+
+
+    <!--TYPE THIS LINE TO VIEW SOMETHING with the SYNCH MODE enabled-->
+    <!--rosrun image_view image_view image:=/kitti_player/grayscale/left/image_rect-->
+
+    <!--If you have the SYNC MODE enabled also publish this (here @ 1Hz)-->
+    <!--rostopic pub -r 1 /kitti_player/synch std_msgs/Bool "data: true"-->
+
+</launch>
+
