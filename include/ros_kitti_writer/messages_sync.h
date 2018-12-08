@@ -29,6 +29,7 @@ class MessagesSync {
 public:
   typedef  std::pair<sensor_msgs::ImageConstPtr, sensor_msgs::PointCloud2ConstPtr> SyncImageCloudPair;
   // Cons
+//  MessagesSync(){};
   MessagesSync(ros::NodeHandle nh, std::string camera_topic_name, std::string lidar_topic_name);
   virtual ~MessagesSync();
 

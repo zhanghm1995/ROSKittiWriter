@@ -57,7 +57,6 @@ static string toDateTime(uint64_t ros_time)
 
 KittiWriter::KittiWriter(ros::NodeHandle nh, ros::NodeHandle private_nh):
 count_(0),
-imageCloudSync_(nh, "/stereo/left/image_raw", "/lidar_cloud_calibrated"),
 processthread_(NULL),
 processthreadfinished_(false)
 {
@@ -67,11 +66,20 @@ processthreadfinished_(false)
     ros::shutdown();
   }
 
+  // Define semantic parameters
+  string velo_topic("/lidar_cloud_calibrated"),left_camera_topic("/stereo/left/image_raw");
+  private_nh.param("velo_topic",velo_topic, velo_topic);
+  private_nh.param("left_camera_topic", left_camera_topic, left_camera_topic);
+
+  // Print parameters
+  ROS_INFO_STREAM("root_directory: " << root_directory_);
+  ROS_INFO_STREAM("velo_topic: " << velo_topic);
+  ROS_INFO_STREAM("left_camera_topic: " << left_camera_topic);
+
   // Create formatted folders
   createFormatFolders();
 
-  // Print parameters
-  ROS_INFO_STREAM("root_directory " << root_directory_);
+  imageCloudSync_ = new sensors_fusion::MessagesSync(nh, left_camera_topic, velo_topic);
   processthread_ = new boost::thread(boost::bind(&KittiWriter::process,this));
 }
 
@@ -86,7 +94,7 @@ void KittiWriter::process()
   while(!processthreadfinished_&&ros::ok()) {
     sensors_fusion::MessagesSync::SyncImageCloudPair imagePair;
     // Get synchronized image with bboxes and cloud data
-    imagePair = imageCloudSync_.getSyncMessages();
+    imagePair = imageCloudSync_->getSyncMessages();
     if((imagePair.first == nullptr) || (imagePair.second == nullptr)) {
       ROS_ERROR_THROTTLE(1,"Waiting for image and lidar topics!!!");
       continue;

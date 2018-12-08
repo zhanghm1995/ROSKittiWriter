@@ -47,7 +47,7 @@ private:
   ros::Subscriber image_sub_;
 
   // Image and cloud synchronizer
-  sensors_fusion::MessagesSync imageCloudSync_;
+  sensors_fusion::MessagesSync* imageCloudSync_;
 
   // Multi thread
   boost::thread* processthread_;

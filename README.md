@@ -14,10 +14,12 @@ This repository aims to subscribe offline `rosbag` files and save the correspoin
 - Save timestamps to nanoseconds
 
 ## Usages
-Please use `roslaunch` file to run the code, and before you execute, please ensure the `directory` argument has been set to a valid path in your computer.
-```
-roslaunch ros_kitti_writer kitti_writer_standalone.launch
+Please use `roslaunch` file to run the code.
 
+Before you execute, please ensure the `directory` argument has been set to a valid path in your computer, and also specify the `left_camera_topic` and `velo_topic` name.
+```
+$ rosbag play [your_offline_rosbag]
+$ roslaunch ros_kitti_writer kitti_writer_standalone.launch
 ```
 ## TODO
 - [ ]  add save oxts data

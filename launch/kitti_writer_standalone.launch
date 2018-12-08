@@ -2,9 +2,13 @@
 <launch>
 
   <arg  name="directory" default="/home/zhanghm/Test/"/>
-
+  <arg  name="velo_topic" default="/lidar_cloud_calibrated"/>
+  <arg  name="left_camera_topic" default="/stereo/left/image_raw"/>
+  
   <node pkg="ros_kitti_writer" type="ros_kitti_writer_node" name="ros_kitti_writer_node" output="screen">
   	<param name="root_directory"		value="$(arg directory)"/>
+  	<param name="velo_topic"		value="$(arg velo_topic)"/>
+  	<param name="left_camera_topic"		value="$(arg left_camera_topic)"/>
   </node>
     
 </launch>
