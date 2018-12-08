@@ -17,7 +17,10 @@ find_package(catkin REQUIRED COMPONENTS
 
 find_package(Eigen3 REQUIRED)
 find_package(OpenCV)
+find_package(PCL 1.8 REQUIRED)
 find_package(Boost REQUIRED COMPONENTS filesystem thread system program_options)
+
+add_definitions(${PCL_DEFINITIONS})
 ###################################
 ## catkin specific configuration ##
 ###################################
@@ -32,12 +35,12 @@ catkin_package(
 
 include_directories(
   include
-  ${catkin_INCLUDE_DIRS} ${EIGEN3_INCLUDE_DIR} ${Boost_INCLUDE_DIRS}
+  ${catkin_INCLUDE_DIRS} ${EIGEN3_INCLUDE_DIR} ${Boost_INCLUDE_DIRS} ${PCL_INCLUDE_DIRS}
 )
 
 ###########
 ## Build ##
 ###########
 add_executable(ros_kitti_writer_node src/ros_kitti_writer_node.cpp src/kitti_writer.cpp)
-target_link_libraries(ros_kitti_writer_node ${catkin_LIBRARIES} ${OpenCV_LIBS} ${Boost_LIBRARIES})
+target_link_libraries(ros_kitti_writer_node ${catkin_LIBRARIES} ${OpenCV_LIBS} ${Boost_LIBRARIES} ${PCL_LIBRARIES})
 

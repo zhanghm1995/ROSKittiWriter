@@ -12,11 +12,16 @@
 #include <fstream>
 #include <cv_bridge/cv_bridge.h>
 #include <sensor_msgs/image_encodings.h>
+#include <cstdio>
 // Boost
 #include <boost/filesystem/operations.hpp>
 #include <boost/format.hpp>
 // Opencv
 #include <opencv2/opencv.hpp>
+// PCL
+#include <pcl_conversions/pcl_conversions.h>
+#include <pcl_ros/point_cloud.h>
+#include <pcl/point_types.h>
 using namespace std;
 
 static string folder_image_02 = "image_02/";
@@ -61,6 +66,12 @@ count_(0)
 
 KittiWriter::~KittiWriter() {
 
+}
+
+void KittiWriter::process()
+{
+
+  ++ count_;
 }
 
 void KittiWriter::createFormatFolders()
@@ -125,11 +136,54 @@ void KittiWriter::saveImage02(const sensor_msgs::Image::ConstPtr & image)
   string date = toDateTime(ros_tt);
   filestr<<date<<std::endl;
   filestr.close();
-
-  ++ count_;
 }
 
 void KittiWriter::saveVelodyne(const sensor_msgs::PointCloud2::ConstPtr& cloud)
 {
+  // Convert to pcl cloud
+  pcl::PointCloud<pcl::PointXYZI>::Ptr pcl_in(new pcl::PointCloud<pcl::PointXYZI>);
+  sensor_msgs::PointCloud2Ptr cloudMsg(new sensor_msgs::PointCloud2(*cloud));
+  cloudMsg->fields[3].name = "intensity";
+  pcl::fromROSMsg(*cloudMsg, *pcl_in);
 
+  // cout
+  size_t num = pcl_in->size();
+
+  // Get cloud name
+  boost::filesystem::path velodyne_file_path = velo_dir_path_
+      /(boost::format(formate_velo)%count_).str();
+  string velodyne_file_name = velodyne_file_path.string();
+
+  // Begin save data
+  FILE* stream = fopen(velodyne_file_name.c_str(), "wb");
+  if(stream == NULL) {
+    cout<<"error open "<<velodyne_file_name<<endl;
+    return ;
+  }
+  float* data = (float*)malloc(4*num*sizeof(float));
+  float* px = data + 0;
+  float* py = data + 1;
+  float* pz = data + 2;
+  float* pI = data + 3;
+
+  for(int i = 0; i < num; ++i) {
+    *px = (float)pcl_in->points[i].x;
+    *py = (float)pcl_in->points[i].y;
+    *pz = (float)pcl_in->points[i].z;
+    *pI = (float)pcl_in->points[i].intensity;
+    px += 4;
+    py += 4;
+    pz += 4;
+    pI += 4;
+  }
+  fwrite(data, sizeof(float), 4*num, stream);
+  fclose(stream);
+
+  // Save timestamps
+  fstream filestr;
+  filestr.open (timestamp_image02_path_.string().c_str(), fstream::out|fstream::app);
+  uint64_t ros_tt = cloud->header.stamp.toNSec();
+  string date = toDateTime(ros_tt);
+  filestr<<date<<std::endl;
+  filestr.close();
 }
