@@ -22,6 +22,7 @@
 #include <pcl_conversions/pcl_conversions.h>
 #include <pcl_ros/point_cloud.h>
 #include <pcl/point_types.h>
+
 using namespace std;
 
 static string folder_image_02 = "image_02/";
@@ -55,23 +56,39 @@ static string toDateTime(uint64_t ros_time)
 }
 
 KittiWriter::KittiWriter(ros::NodeHandle nh, ros::NodeHandle private_nh):
-count_(0)
+count_(0),
+imageCloudSync_(nh, "/darknet_ros/image_with_bboxes", "/kitti_player/hdl64e"),
+processthread_(NULL),
+processthreadfinished_(false)
 {
   createFormatFolders();
-
-  // Create subscribers
-  image_sub_ = nh.subscribe(
-      "/kitti/camera_color_left/image_raw", 2, &KittiWriter::saveImage02, this);
+  processthread_ = new boost::thread(boost::bind(&KittiWriter::process,this));
 }
 
 KittiWriter::~KittiWriter() {
-
+  processthreadfinished_ = true;
+  processthread_->join();
 }
 
 void KittiWriter::process()
 {
+  // main loop
+  while(!processthreadfinished_&&ros::ok()) {
+    // Get synchronized image with bboxes and cloud data
+    sensors_fusion::MessagesSync::SyncImageCloudPair imagePair = imageCloudSync_.getSyncMessages();
+    if((imagePair.first == nullptr) || (imagePair.second == nullptr)) {
+      ROS_ERROR_THROTTLE(1,"Waiting for image and lidar topics!!!");
+      continue;
+    }
 
-  ++ count_;
+    // process image
+    saveImage02(imagePair.first);
+
+    // Preprocess point cloud
+    saveVelodyne(imagePair.second);
+    ++ count_;
+  }
+
 }
 
 void KittiWriter::createFormatFolders()

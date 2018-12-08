@@ -20,7 +20,12 @@
 #include <sensor_msgs/PointCloud2.h>
 // Boost
 #include <boost/filesystem/path.hpp>
+#include <boost/algorithm/string.hpp>
+#include <boost/timer.hpp>
+#include <boost/math/special_functions/round.hpp>
+#include <boost/thread/thread.hpp>
 
+#include <ros_kitti_writer/messages_sync.h>
 class KittiWriter {
 public:
   // Default constructor
@@ -40,6 +45,13 @@ private:
 
   // Subscriber
   ros::Subscriber image_sub_;
+
+  // Image and cloud synchronizer
+  sensors_fusion::MessagesSync imageCloudSync_;
+
+  // Multi thread
+  boost::thread* processthread_;
+  bool processthreadfinished_;
 
   // Class members
   boost::filesystem::path image_02_dir_path_, image_03_dir_path_;
