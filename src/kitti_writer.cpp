@@ -88,7 +88,6 @@ void KittiWriter::process()
     saveVelodyne(imagePair.second);
     ++ count_;
   }
-
 }
 
 void KittiWriter::createFormatFolders()
