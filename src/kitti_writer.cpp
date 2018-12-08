@@ -53,6 +53,9 @@ count_(0)
 {
   createFormatFolders();
 
+  // Create subscribers
+  image_sub_ = nh.subscribe(
+      "/kitti/camera_color_left/image_raw", 2, &KittiWriter::saveImage02, this);
 }
 
 KittiWriter::~KittiWriter() {
@@ -105,7 +108,7 @@ void KittiWriter::saveImage02(const sensor_msgs::Image::ConstPtr & image)
     return;
   }
   cv::Mat raw_image = cv_det_grid_ptr->image;
-
+ ROS_WARN_STREAM("save image "<<count_);
   // Get image name
   boost::filesystem::path image_02_file_path = image_02_dir_path_
       /(boost::format(format_image)%count_).str();
@@ -121,4 +124,6 @@ void KittiWriter::saveImage02(const sensor_msgs::Image::ConstPtr & image)
   string date = toDateTime(ros_tt);
   filestr<<date<<std::endl;
   filestr.close();
+
+  ++ count_;
 }
