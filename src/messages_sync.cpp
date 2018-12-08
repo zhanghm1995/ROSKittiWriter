@@ -21,11 +21,23 @@ MessagesSync::MessagesSync(ros::NodeHandle nh, std::string camera_topic_name, st
     nodeHandle_(nh),
     subCameraImage_(nh, camera_topic_name, 2),
     subLidarData_(nh,lidar_topic_name, 2),
+    flag(false),
     sync(MySyncPolicy(10), subCameraImage_, subLidarData_)
 {
   //发布同步后的数据
   ROS_INFO("lidar and camera data synchronizing started");
   sync.registerCallback(boost::bind(&MessagesSync::cameraLidarCallback, this,_1, _2));
+}
+
+MessagesSync::SyncImageCloudPair MessagesSync::getSyncMessages()
+{
+  if(!flag)
+    return SyncImageCloudPair();
+  else {
+    flag = false;
+    return syncMessages_;
+  }
+
 }
 
 void MessagesSync::cameraLidarCallback(const sensor_msgs::ImageConstPtr& image_msg,const sensor_msgs::PointCloud2ConstPtr& lidar_msg)
@@ -36,6 +48,7 @@ void MessagesSync::cameraLidarCallback(const sensor_msgs::ImageConstPtr& image_m
   sensor_msgs::PointCloud2Ptr cloudMsg(new sensor_msgs::PointCloud2(*lidar_msg));
   cloudMsg->fields[3].name = "intensity";
   syncMessages_ = SyncImageCloudPair(image_msg, cloudMsg);
+  flag = true;
 }
 
 MessagesSync::~MessagesSync() {

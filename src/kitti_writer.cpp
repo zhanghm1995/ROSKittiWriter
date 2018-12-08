@@ -57,7 +57,7 @@ static string toDateTime(uint64_t ros_time)
 
 KittiWriter::KittiWriter(ros::NodeHandle nh, ros::NodeHandle private_nh):
 count_(0),
-imageCloudSync_(nh, "/darknet_ros/image_with_bboxes", "/kitti_player/hdl64e"),
+imageCloudSync_(nh, "/stereo/left/image_raw", "/lidar_cloud_calibrated"),
 processthread_(NULL),
 processthreadfinished_(false)
 {
@@ -74,13 +74,14 @@ void KittiWriter::process()
 {
   // main loop
   while(!processthreadfinished_&&ros::ok()) {
+    sensors_fusion::MessagesSync::SyncImageCloudPair imagePair;
     // Get synchronized image with bboxes and cloud data
-    sensors_fusion::MessagesSync::SyncImageCloudPair imagePair = imageCloudSync_.getSyncMessages();
+    imagePair = imageCloudSync_.getSyncMessages();
     if((imagePair.first == nullptr) || (imagePair.second == nullptr)) {
       ROS_ERROR_THROTTLE(1,"Waiting for image and lidar topics!!!");
       continue;
     }
-
+    ROS_INFO_STREAM("Begin saving data "<<count_);
     // process image
     saveImage02(imagePair.first);
 
@@ -121,6 +122,9 @@ void KittiWriter::createFormatFolders()
   if(!boost::filesystem::exists(velo_dir_path_)) {
     boost::filesystem::create_directories(velo_dir_path_);
   }
+  timestamp_velo_path_ = boost::filesystem::path(root_directory)
+                        / folder_velodyne_points
+                        / "timestamps.txt";
 }
 
 void KittiWriter::saveImage02(const sensor_msgs::Image::ConstPtr & image)
@@ -197,7 +201,7 @@ void KittiWriter::saveVelodyne(const sensor_msgs::PointCloud2::ConstPtr& cloud)
 
   // Save timestamps
   fstream filestr;
-  filestr.open (timestamp_image02_path_.string().c_str(), fstream::out|fstream::app);
+  filestr.open (timestamp_velo_path_.string().c_str(), fstream::out|fstream::app);
   uint64_t ros_tt = cloud->header.stamp.toNSec();
   string date = toDateTime(ros_tt);
   filestr<<date<<std::endl;

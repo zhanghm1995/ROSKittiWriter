@@ -32,7 +32,7 @@ public:
   MessagesSync(ros::NodeHandle nh, std::string camera_topic_name, std::string lidar_topic_name);
   virtual ~MessagesSync();
 
-  SyncImageCloudPair getSyncMessages() const {return syncMessages_; }
+  SyncImageCloudPair getSyncMessages();
 
 private:
   void cameraLidarCallback(const sensor_msgs::ImageConstPtr& image_msg,const sensor_msgs::PointCloud2ConstPtr& lidar_msg);
@@ -50,6 +50,7 @@ private:
 
   // returns
   SyncImageCloudPair syncMessages_;
+  bool flag;
 };
 
 
