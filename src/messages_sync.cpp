@@ -37,7 +37,6 @@ MessagesSync::SyncImageCloudPair MessagesSync::getSyncMessages()
     flag = false;
     return syncMessages_;
   }
-
 }
 
 void MessagesSync::cameraLidarCallback(const sensor_msgs::ImageConstPtr& image_msg,const sensor_msgs::PointCloud2ConstPtr& lidar_msg)
@@ -52,7 +51,6 @@ void MessagesSync::cameraLidarCallback(const sensor_msgs::ImageConstPtr& image_m
 }
 
 MessagesSync::~MessagesSync() {
-  // TODO Auto-generated destructor stub
 }
 
 } /* namespace sensors_fusion */
