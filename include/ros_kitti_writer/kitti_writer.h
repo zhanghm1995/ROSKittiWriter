@@ -35,6 +35,9 @@ private:
   //! Save image02 and corresponding timestamp
   void saveImage02(const sensor_msgs::Image::ConstPtr & image);
 
+  //! Save lidar and corresponding timestamps
+  void saveVelodyne(const sensor_msgs::PointCloud2::ConstPtr& cloud);
+
   // Subscriber
   ros::Subscriber image_sub_;
 

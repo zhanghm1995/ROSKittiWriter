@@ -23,6 +23,7 @@ static string folder_image_02 = "image_02/";
 static string folder_image_03 = "image_03/";
 static string folder_velodyne_points = "velodyne_points/";
 static string format_image = "%|010|.png";
+static string formate_velo = "%|010|.bin";
 
 static string toDateTime(uint64_t ros_time)
 {
@@ -126,4 +127,9 @@ void KittiWriter::saveImage02(const sensor_msgs::Image::ConstPtr & image)
   filestr.close();
 
   ++ count_;
+}
+
+void KittiWriter::saveVelodyne(const sensor_msgs::PointCloud2::ConstPtr& cloud)
+{
+
 }
