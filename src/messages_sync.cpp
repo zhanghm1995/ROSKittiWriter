@@ -64,8 +64,9 @@ StereoMessagesSync::StereoMessagesSync(ros::NodeHandle nh, std::string camera1_t
                                        std::string camera2_topic_name,
                                        std::string lidar_topic_name):
 nodeHandle_(nh),
-subCamera1Image_(nh, camera1_topic_name, 2),
-subLidarData_(nh,lidar_topic_name, 2),
+subCamera1Image_(nh, camera1_topic_name, 20),
+subCamera2Image_(nh, camera2_topic_name, 20),
+subLidarData_(nh,lidar_topic_name, 10),
 flag(false),
 sync(MySyncPolicy(10), subCamera1Image_, subCamera2Image_, subLidarData_)
 {
@@ -81,6 +82,7 @@ void StereoMessagesSync::stereocameraLidarCallback(const sensor_msgs::ImageConst
                                const sensor_msgs::ImageConstPtr& image2_msg,
                                const sensor_msgs::PointCloud2ConstPtr& lidar_msg)
 {
+  ROS_INFO_THROTTLE(5, "Sync_Callback");
   sensor_msgs::PointCloud2Ptr cloudMsg(new sensor_msgs::PointCloud2(*lidar_msg));
   cloudMsg->fields[3].name = "intensity";
   SynchronizedMessages result;

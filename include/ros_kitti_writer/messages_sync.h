@@ -98,7 +98,7 @@ private:
   subLidarData subLidarData_;//订阅激光雷达消息
 
   typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::Image,sensor_msgs::Image, sensor_msgs::PointCloud2> MySyncPolicy;
-  message_filters::Synchronizer< MySyncPolicy> sync;
+  message_filters::Synchronizer<MySyncPolicy> sync;
 
   // returns
   SynchronizedMessages syncMessages2_;

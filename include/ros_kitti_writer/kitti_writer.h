@@ -39,6 +39,7 @@ private:
 
   //! Save image02 and corresponding timestamp
   void saveImage02(const sensor_msgs::Image::ConstPtr & image);
+  void saveImage03(const sensor_msgs::Image::ConstPtr & image);
 
   //! Save lidar and corresponding timestamps
   void saveVelodyne(const sensor_msgs::PointCloud2::ConstPtr& cloud);
@@ -47,7 +48,7 @@ private:
   ros::Subscriber image_sub_;
 
   // Image and cloud synchronizer
-  sensors_fusion::MessagesSync* imageCloudSync_;
+  sensors_fusion::StereoMessagesSync* imageCloudSync_;
 
   // Multi thread
   boost::thread* processthread_;

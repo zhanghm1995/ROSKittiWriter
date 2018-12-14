@@ -67,19 +67,23 @@ processthreadfinished_(false)
   }
 
   // Define semantic parameters
-  string velo_topic("/lidar_cloud_calibrated"),left_camera_topic("/stereo/left/image_raw");
+  string velo_topic("/lidar_cloud_calibrated"),
+         left_camera_topic("/stereo/left/image_raw"),
+         right_camera_topic("/stereo/right/image_raw");
   private_nh.param("velo_topic",velo_topic, velo_topic);
   private_nh.param("left_camera_topic", left_camera_topic, left_camera_topic);
+  private_nh.param("right_camera_topic", right_camera_topic, right_camera_topic);
 
   // Print parameters
   ROS_INFO_STREAM("root_directory: " << root_directory_);
   ROS_INFO_STREAM("velo_topic: " << velo_topic);
   ROS_INFO_STREAM("left_camera_topic: " << left_camera_topic);
+  ROS_INFO_STREAM("right_camera_topic: " << right_camera_topic);
 
   // Create formatted folders
   createFormatFolders();
 
-  imageCloudSync_ = new sensors_fusion::MessagesSync(nh, left_camera_topic, velo_topic);
+  imageCloudSync_ = new sensors_fusion::StereoMessagesSync(nh, left_camera_topic,right_camera_topic, velo_topic);
   processthread_ = new boost::thread(boost::bind(&KittiWriter::process,this));
 }
 
@@ -92,21 +96,24 @@ void KittiWriter::process()
 {
   // main loop
   while(!processthreadfinished_&&ros::ok()) {
-    sensors_fusion::MessagesSync::SyncImageCloudPair imagePair;
     // Get synchronized image with bboxes and cloud data
-    imagePair = imageCloudSync_->getSyncMessages();
-    if((imagePair.first == nullptr) || (imagePair.second == nullptr)) {
+    sensors_fusion::StereoMessagesSync::SynchronizedMessages imagePair = imageCloudSync_->getSyncMessages();
+    if((imagePair.image1_ptr == nullptr) || (imagePair.image2_ptr == nullptr) ||
+        (imagePair.cloud_ptr == nullptr)) {
       ROS_ERROR_THROTTLE(1,"Waiting for image and lidar topics!!!");
       continue;
     }
+
     ROS_INFO_STREAM("Begin saving data "<<count_);
+
     // process image
-    saveImage02(imagePair.first);
+    saveImage02(imagePair.image1_ptr);
+    saveImage03(imagePair.image2_ptr);
 
     // Preprocess point cloud
-    saveVelodyne(imagePair.second);
+    saveVelodyne(imagePair.cloud_ptr);
     ++ count_;
-  }
+  }// end while
 }
 
 void KittiWriter::createFormatFolders()
@@ -168,6 +175,38 @@ void KittiWriter::saveImage02(const sensor_msgs::Image::ConstPtr & image)
   // 2) Save timestamps
   fstream filestr;
   filestr.open (timestamp_image02_path_.string().c_str(), fstream::out|fstream::app);
+  uint64_t ros_tt = image->header.stamp.toNSec();
+  string date = toDateTime(ros_tt);
+  filestr<<date<<std::endl;
+  filestr.close();
+}
+
+
+void KittiWriter::saveImage03(const sensor_msgs::Image::ConstPtr & image)
+{
+  // Convert image detection grid to cv mat
+  cv_bridge::CvImagePtr cv_det_grid_ptr;
+  try{
+    cv_det_grid_ptr = cv_bridge::toCvCopy(image,
+        sensor_msgs::image_encodings::BGR8);
+  }
+  catch (cv_bridge::Exception& e){
+    ROS_ERROR("cv_bridge exception: %s", e.what());
+    return;
+  }
+  cv::Mat raw_image = cv_det_grid_ptr->image;
+ ROS_WARN_STREAM("save image "<<count_);
+  // Get image name
+  boost::filesystem::path image_03_file_path = image_03_dir_path_
+      /(boost::format(format_image)%count_).str();
+  string image_03_file_name = image_03_file_path.string();
+
+  // 1) Save image
+  cv::imwrite(image_03_file_name, raw_image);
+
+  // 2) Save timestamps
+  fstream filestr;
+  filestr.open (timestamp_image03_path_.string().c_str(), fstream::out|fstream::app);
   uint64_t ros_tt = image->header.stamp.toNSec();
   string date = toDateTime(ros_tt);
   filestr<<date<<std::endl;
