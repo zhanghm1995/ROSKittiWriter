@@ -104,15 +104,13 @@ void KittiWriter::process()
       continue;
     }
 
-    ROS_INFO_STREAM("Begin saving data "<<count_);
-#if 0
+    ROS_WARN_STREAM("Begin saving data "<<count_);
     // process image
     saveImage02(imagePair.image1_ptr);
     saveImage03(imagePair.image2_ptr);
 
     // Preprocess point cloud
     saveVelodyne(imagePair.cloud_ptr);
-#endif
     ++ count_;
   }// end while
 }
@@ -164,7 +162,6 @@ void KittiWriter::saveImage02(const sensor_msgs::Image::ConstPtr & image)
     return;
   }
   cv::Mat raw_image = cv_det_grid_ptr->image;
- ROS_WARN_STREAM("save image "<<count_);
   // Get image name
   boost::filesystem::path image_02_file_path = image_02_dir_path_
       /(boost::format(format_image)%count_).str();
@@ -196,7 +193,6 @@ void KittiWriter::saveImage03(const sensor_msgs::Image::ConstPtr & image)
     return;
   }
   cv::Mat raw_image = cv_det_grid_ptr->image;
- ROS_WARN_STREAM("save image "<<count_);
   // Get image name
   boost::filesystem::path image_03_file_path = image_03_dir_path_
       /(boost::format(format_image)%count_).str();
