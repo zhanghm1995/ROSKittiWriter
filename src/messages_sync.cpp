@@ -89,18 +89,21 @@ void StereoMessagesSync::stereocameraLidarCallback(const sensor_msgs::ImageConst
   result.image1_ptr = image1_msg;
   result.image2_ptr = image2_msg;
   result.cloud_ptr = cloudMsg;
-  syncMessages2_ = result;
+//  syncMessages2_ = result;
+
+  messages_queue_.push(result);
   flag = true;
 }
 
 StereoMessagesSync::SynchronizedMessages  StereoMessagesSync::getSyncMessages()
 {
-  if(!flag)
-    return SynchronizedMessages();
-  else {
-    flag = false;
-    return syncMessages2_;
+  if(!messages_queue_.empty()) {
+    StereoMessagesSync::SynchronizedMessages res = messages_queue_.front();
+    messages_queue_.pop();
+    return res;
   }
+  else
+    return SynchronizedMessages();
 }
 
 } /* namespace sensors_fusion */

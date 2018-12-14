@@ -12,6 +12,7 @@
 //C++
 #include <string>
 #include <map>
+#include <queue>
 //ROS
 #include <ros/ros.h>
 #include <sensor_msgs/PointCloud2.h>
@@ -102,6 +103,8 @@ private:
 
   // returns
   SynchronizedMessages syncMessages2_;
+
+  std::queue<SynchronizedMessages> messages_queue_;
   bool flag;
 };
 

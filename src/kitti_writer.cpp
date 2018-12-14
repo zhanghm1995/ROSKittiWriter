@@ -105,13 +105,14 @@ void KittiWriter::process()
     }
 
     ROS_INFO_STREAM("Begin saving data "<<count_);
-
+#if 0
     // process image
     saveImage02(imagePair.image1_ptr);
     saveImage03(imagePair.image2_ptr);
 
     // Preprocess point cloud
     saveVelodyne(imagePair.cloud_ptr);
+#endif
     ++ count_;
   }// end while
 }
