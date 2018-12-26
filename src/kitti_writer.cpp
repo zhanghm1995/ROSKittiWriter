@@ -49,7 +49,7 @@ static string toDateTime(uint64_t ros_time)
   char format[] = "%Y-%m-%d %H:%M:%S";
   strftime(buffer, sizeof(buffer), format, localTm);
 
-  string nanosec_format = "%|010|";
+  string nanosec_format = "%|09|";
   stringstream ss;
   ss<<buffer<<"."<<(boost::format(nanosec_format) % tp.count()).str();
   return ss.str();
