@@ -31,6 +31,14 @@ static string folder_velodyne_points = "velodyne_points/";
 static string format_image = "%|010|.png";
 static string formate_velo = "%|010|.bin";
 
+/*!
+ * @brief From ROS Nano second time to date time
+ *        Example:
+ *                 uint64_t ros_tt = image->header.stamp.toNSec();
+                   string date = toDateTime(ros_tt);// 2011-09-26 13:04:32.351950336
+ * @param ros_time
+ * @return
+ */
 static string toDateTime(uint64_t ros_time)
 {
   // Convert to chrono nanoseconds type
@@ -61,15 +69,15 @@ processthread_(NULL),
 processthreadfinished_(false)
 {
   // Define lidar parameters
-  if(!private_nh.getParam("root_directory", root_directory_)) {
+  if (!private_nh.getParam("root_directory", root_directory_)) {
     ROS_ERROR("Have't set $(root_directory) parameter!");
     ros::shutdown();
   }
 
   // Define semantic parameters
-  string velo_topic("/lidar_cloud_calibrated"),
-         left_camera_topic("/stereo/left/image_raw"),
-         right_camera_topic("/stereo/right/image_raw");
+  string velo_topic(""),
+         left_camera_topic(""),
+         right_camera_topic("");
   private_nh.param("velo_topic",velo_topic, velo_topic);
   private_nh.param("left_camera_topic", left_camera_topic, left_camera_topic);
   private_nh.param("right_camera_topic", right_camera_topic, right_camera_topic);
@@ -80,6 +88,9 @@ processthreadfinished_(false)
   ROS_INFO_STREAM("left_camera_topic: " << left_camera_topic);
   ROS_INFO_STREAM("right_camera_topic: " << right_camera_topic);
 
+  if (velo_topic.empty()) {
+    ROS_WARN("velo_topic is empty...");
+  }
   // Create formatted folders
   createFormatFolders();
 
@@ -97,7 +108,7 @@ void KittiWriter::process()
   // main loop
   while(!processthreadfinished_&&ros::ok()) {
     // Get synchronized image with bboxes and cloud data
-    sensors_fusion::StereoMessagesSync::SynchronizedMessages imagePair = imageCloudSync_->getSyncMessages();
+    sensors_fusion::SynchronizedMessages imagePair = imageCloudSync_->getSyncMessages();
     if((imagePair.image1_ptr == nullptr) || (imagePair.image2_ptr == nullptr) ||
         (imagePair.cloud_ptr == nullptr)) {
       ROS_ERROR_THROTTLE(1,"Waiting for image and lidar topics!!!");

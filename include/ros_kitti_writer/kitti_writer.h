@@ -26,6 +26,7 @@
 #include <boost/thread/thread.hpp>
 
 #include <ros_kitti_writer/messages_sync.h>
+
 class KittiWriter {
 public:
   // Default constructor
