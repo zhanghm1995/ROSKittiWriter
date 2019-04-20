@@ -66,21 +66,28 @@ static string toDateTime(uint64_t ros_time)
 KittiWriter::KittiWriter(ros::NodeHandle nh, ros::NodeHandle private_nh):
 count_(0),
 processthread_(NULL),
-processthreadfinished_(false)
+processthreadfinished_(false),
+is_one_image_(false)
 {
+
   // Define lidar parameters
   if (!private_nh.getParam("root_directory", root_directory_)) {
-    ROS_ERROR("Have't set $(root_directory) parameter!");
+    ROS_ERROR("Have't set $(root_directory)  or $(velo_topic) parameters valid value!");
     ros::shutdown();
   }
-
   // Define semantic parameters
-  string velo_topic(""),
-         left_camera_topic(""),
-         right_camera_topic("");
+   string velo_topic(""),
+           left_camera_topic(""),
+           right_camera_topic("");
   private_nh.param("velo_topic",velo_topic, velo_topic);
   private_nh.param("left_camera_topic", left_camera_topic, left_camera_topic);
   private_nh.param("right_camera_topic", right_camera_topic, right_camera_topic);
+
+  // Mush have point cloud topic
+  if (velo_topic.empty()) {
+    ROS_ERROR("Must set $(velo_topic) parameter valid value!");
+    ros::shutdown();
+  }
 
   // Print parameters
   ROS_INFO_STREAM("root_directory: " << root_directory_);
@@ -88,13 +95,24 @@ processthreadfinished_(false)
   ROS_INFO_STREAM("left_camera_topic: " << left_camera_topic);
   ROS_INFO_STREAM("right_camera_topic: " << right_camera_topic);
 
-  if (velo_topic.empty()) {
-    ROS_WARN("velo_topic is empty...");
+  /// -----According to input topics to decide sync which messages-----
+  if (left_camera_topic.empty() ^ right_camera_topic.empty()) { // if only has one camera image topic
+    string image_topic = left_camera_topic.empty() ? right_camera_topic : left_camera_topic;
+    imageCloudSync_ = new sensors_fusion::ImageCloudMessagesSync(nh, image_topic, velo_topic);
+    is_one_image_ = true;
+    ROS_WARN_STREAM("Only one image topic... ");
   }
+  else if (!left_camera_topic.empty() && !right_camera_topic.empty()) {// has two camera image topic
+    stereoCloudSync_ = new sensors_fusion::StereoMessagesSync(nh, left_camera_topic,right_camera_topic, velo_topic);
+  }
+  else {
+    ROS_ERROR("Must set one of left_camera_topic or right_camera_topic parameter valid value!");
+    ros::shutdown();
+  }
+
   // Create formatted folders
   createFormatFolders();
 
-  imageCloudSync_ = new sensors_fusion::StereoMessagesSync(nh, left_camera_topic,right_camera_topic, velo_topic);
   processthread_ = new boost::thread(boost::bind(&KittiWriter::process,this));
 }
 
@@ -107,10 +125,18 @@ void KittiWriter::process()
 {
   // main loop
   while(!processthreadfinished_&&ros::ok()) {
+    sensors_fusion::SynchronizedMessages imagePair;
+    bool flag = false;
+    if (is_one_image_) {
+      flag = imageCloudSync_->is_valid();
+      imagePair = imageCloudSync_->getSyncMessages();
+    }
+    else {
+      flag = stereoCloudSync_->is_valid();
+      imagePair =  stereoCloudSync_->getSyncMessages();
+    }
     // Get synchronized image with bboxes and cloud data
-    sensors_fusion::SynchronizedMessages imagePair = imageCloudSync_->getSyncMessages();
-    if((imagePair.image1_ptr == nullptr) || (imagePair.image2_ptr == nullptr) ||
-        (imagePair.cloud_ptr == nullptr)) {
+    if (!flag) {
       ROS_ERROR_THROTTLE(1,"Waiting for image and lidar topics!!!");
       continue;
     }

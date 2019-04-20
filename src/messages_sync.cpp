@@ -27,6 +27,14 @@ ImageCloudMessagesSync::ImageCloudMessagesSync(ros::NodeHandle nh, std::string c
   sync.registerCallback(boost::bind(&ImageCloudMessagesSync::cameraLidarCallback, this,_1, _2));
 }
 
+bool ImageCloudMessagesSync::is_valid()
+{
+  if (messages_queue_.empty())
+    return false;
+  else
+    return true;
+}
+
 sensors_fusion::SynchronizedMessages ImageCloudMessagesSync::getSyncMessages()
 {
   if(!messages_queue_.empty()) {
@@ -52,8 +60,6 @@ void ImageCloudMessagesSync::cameraLidarCallback(const sensor_msgs::ImageConstPt
 
   messages_queue_.push(result);
 }
-
-
 
 ImageCloudMessagesSync::~ImageCloudMessagesSync() {
 }
@@ -91,6 +97,14 @@ void StereoMessagesSync::stereocameraLidarCallback(const sensor_msgs::ImageConst
   result.cloud_ptr = cloudMsg;
 
   messages_queue_.push(result);
+}
+
+bool StereoMessagesSync::is_valid()
+{
+  if (messages_queue_.empty())
+    return false;
+  else
+    return true;
 }
 
 sensors_fusion::SynchronizedMessages  StereoMessagesSync::getSyncMessages()

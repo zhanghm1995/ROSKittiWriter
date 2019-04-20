@@ -42,6 +42,8 @@ public:
   ImageCloudMessagesSync(ros::NodeHandle nh, std::string camera1_topic_name, std::string lidar_topic_name);
   virtual ~ImageCloudMessagesSync();
 
+  bool is_valid(); // Whether has valid synchronized messages
+
   SynchronizedMessages getSyncMessages();
 
 private:
@@ -75,6 +77,7 @@ public:
                std::string lidar_topic_name);
   virtual ~StereoMessagesSync();
 
+  bool is_valid();
   SynchronizedMessages getSyncMessages();
 
 private:
