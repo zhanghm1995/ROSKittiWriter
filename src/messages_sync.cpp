@@ -17,44 +17,51 @@
 namespace sensors_fusion {
 
 ////////////////////////////////MessagesSync////////////////////////////////////////////////////////
-MessagesSync::MessagesSync(ros::NodeHandle nh, std::string camera_topic_name, std::string lidar_topic_name):
+ImageCloudMessagesSync::ImageCloudMessagesSync(ros::NodeHandle nh, std::string camera_topic_name, std::string lidar_topic_name):
     nodeHandle_(nh),
-    subCamera1Image_(nh, camera_topic_name, 2),
-    subLidarData_(nh,lidar_topic_name, 2),
-    flag(false),
+    subCamera1Image_(nh, camera_topic_name, 20),
+    subLidarData_(nh,lidar_topic_name, 10),
     sync(MySyncPolicy(10), subCamera1Image_, subLidarData_)
 {
   ROS_INFO("lidar and camera data synchronizing started");
-  sync.registerCallback(boost::bind(&MessagesSync::cameraLidarCallback, this,_1, _2));
+  sync.registerCallback(boost::bind(&ImageCloudMessagesSync::cameraLidarCallback, this,_1, _2));
 }
 
-MessagesSync::SyncImageCloudPair MessagesSync::getSyncMessages()
+bool ImageCloudMessagesSync::is_valid()
 {
-  if(!flag)
-    return SyncImageCloudPair();
-  else {
-    flag = false;
-    return syncMessages_;
+  if (messages_queue_.empty())
+    return false;
+  else
+    return true;
+}
+
+sensors_fusion::SynchronizedMessages ImageCloudMessagesSync::getSyncMessages()
+{
+  if(!messages_queue_.empty()) {
+    sensors_fusion::SynchronizedMessages res = messages_queue_.front();
+    messages_queue_.pop();
+    return res;
   }
+  else
+    return SynchronizedMessages();
 }
 
 
-
-
-void MessagesSync::cameraLidarCallback(const sensor_msgs::ImageConstPtr& image_msg,const sensor_msgs::PointCloud2ConstPtr& lidar_msg)
+void ImageCloudMessagesSync::cameraLidarCallback(const sensor_msgs::ImageConstPtr& image_msg,const sensor_msgs::PointCloud2ConstPtr& lidar_msg)
 {
   ROS_INFO_THROTTLE(5, "Sync_Callback");
+  sensor_msgs::PointCloud2Ptr cloudMsg(new sensor_msgs::PointCloud2(*lidar_msg));
   // 2018-11-28 add below code for Warning "Failed to find match for field 'intensity'."
   // https://answers.ros.org/question/173396/losing-intensity-data-when-converting-between-sensor_msgspointcloud2-and-pclpointcloudt/
-  sensor_msgs::PointCloud2Ptr cloudMsg(new sensor_msgs::PointCloud2(*lidar_msg));
   cloudMsg->fields[3].name = "intensity";
-  syncMessages_ = SyncImageCloudPair(image_msg, cloudMsg);
-  flag = true;
+  SynchronizedMessages result;
+  result.image1_ptr = image_msg;
+  result.cloud_ptr = cloudMsg;
+
+  messages_queue_.push(result);
 }
 
-
-
-MessagesSync::~MessagesSync() {
+ImageCloudMessagesSync::~ImageCloudMessagesSync() {
 }
 
 
@@ -67,7 +74,6 @@ nodeHandle_(nh),
 subCamera1Image_(nh, camera1_topic_name, 20),
 subCamera2Image_(nh, camera2_topic_name, 20),
 subLidarData_(nh,lidar_topic_name, 10),
-flag(false),
 sync(MySyncPolicy(10), subCamera1Image_, subCamera2Image_, subLidarData_)
 {
   ROS_INFO("lidar and stereo camera data synchronizing started");
@@ -89,16 +95,22 @@ void StereoMessagesSync::stereocameraLidarCallback(const sensor_msgs::ImageConst
   result.image1_ptr = image1_msg;
   result.image2_ptr = image2_msg;
   result.cloud_ptr = cloudMsg;
-//  syncMessages2_ = result;
 
   messages_queue_.push(result);
-  flag = true;
 }
 
-StereoMessagesSync::SynchronizedMessages  StereoMessagesSync::getSyncMessages()
+bool StereoMessagesSync::is_valid()
+{
+  if (messages_queue_.empty())
+    return false;
+  else
+    return true;
+}
+
+sensors_fusion::SynchronizedMessages  StereoMessagesSync::getSyncMessages()
 {
   if(!messages_queue_.empty()) {
-    StereoMessagesSync::SynchronizedMessages res = messages_queue_.front();
+    sensors_fusion::SynchronizedMessages res = messages_queue_.front();
     messages_queue_.pop();
     return res;
   }

@@ -1,16 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <launch>
 
-  <arg  name="directory" default="/home/zhanghm/Test/ccc"/>
-  <arg  name="velo_topic" default="/lidar_cloud_calibrated"/>
-  <arg  name="left_camera_topic" default="/stereo/left/image_raw"/>
-  <arg  name="right_camera_topic" default="/stereo/right/image_raw"/>
-  
   <node pkg="ros_kitti_writer" type="ros_kitti_writer_node" name="ros_kitti_writer_node" output="screen">
-  	<param name="root_directory"		value="$(arg directory)"/>
-  	<param name="velo_topic"		value="$(arg velo_topic)"/>
-  	<param name="left_camera_topic"		value="$(arg left_camera_topic)"/>
-  	<param name="right_camera_topic"		value="$(arg right_camera_topic)"/>
+  	<param name="root_directory"		value="/home/zhanghm/Test/ccc"/>
+  	<param name="velo_topic"		value="/lidar_cloud_calibrated"/>
+  	<param name="left_camera_topic"		value="/stereo/left/image_raw"/>
+  	<param name="right_camera_topic"		value=""/>
   </node>
     
 </launch>

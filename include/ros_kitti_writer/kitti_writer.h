@@ -26,6 +26,7 @@
 #include <boost/thread/thread.hpp>
 
 #include <ros_kitti_writer/messages_sync.h>
+
 class KittiWriter {
 public:
   // Default constructor
@@ -37,18 +38,17 @@ private:
   void createFormatFolders();
 
 
-  //! Save image02 and corresponding timestamp
+  //! Save images and corresponding timestamp
   void saveImage02(const sensor_msgs::Image::ConstPtr & image);
   void saveImage03(const sensor_msgs::Image::ConstPtr & image);
 
   //! Save lidar and corresponding timestamps
   void saveVelodyne(const sensor_msgs::PointCloud2::ConstPtr& cloud);
 
-  // Subscriber
-  ros::Subscriber image_sub_;
 
-  // Image and cloud synchronizer
-  sensors_fusion::StereoMessagesSync* imageCloudSync_;
+  /// Image and cloud synchronizer
+  sensors_fusion::StereoMessagesSync* stereoCloudSync_; //Stereo image and cloud synchronizer
+  sensors_fusion::ImageCloudMessagesSync* imageCloudSync_;
 
   // Multi thread
   boost::thread* processthread_;
@@ -63,6 +63,9 @@ private:
 
   // Whole counter
   unsigned long int count_;
+
+  // Only one image topic or not
+  bool is_one_image_;
 };
 
 #endif /* CATKIN_WS_TEST_SRC_ROS_KITTI_WRITER_INCLUDE_ROS_KITTI_WRITER_KITTI_WRITER_H_ */
